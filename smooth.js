@@ -1,732 +1,1169 @@
-// ====== GLOBAL VARIABLES ======
-let currentUser = '';
-let fileUploadQueue = [];
-let isUploading = false;
-let uploadProgress = 0;
-let systemLogs = [];
+// ====== ملف JavaScript الرئيسي - Hostinger x Team ======
+// ====== نظام الاستضافة المتقدم مع أمان محسن ======
 
-// ====== DOM ELEMENTS ======
+// ====== متغيرات النظام ======
+let currentUser = '';
+let loginAttempts = 0;
+const MAX_LOGIN_ATTEMPTS = 5;
+let isAccountLocked = false;
+let lockEndTime = null;
+let sessionTimeout = null;
+let sessionTimer = null;
+let otpCode = '';
+let securityPIN = '';
+let isAuthenticated = false;
+let userSession = {
+    startTime: null,
+    lastActivity: null,
+    ipAddress: '',
+    deviceInfo: ''
+};
+
+// ====== قوائم الأمان ======
+const BLACKLISTED_USERS = ['admin', 'root', 'test', 'user', 'guest'];
+const ALLOWED_IPS = ['192.168.1.*', '10.0.0.*']; // يمكن إضافة IPs مسموحة
+const SUSPICIOUS_PATTERNS = ['12345', 'admin1', 'password', 'qwerty'];
+
+// ====== عناصر DOM الرئيسية ======
 const loginScreen = document.getElementById('login-screen');
 const dashboardScreen = document.getElementById('dashboard-screen');
+const loadingScreen = document.getElementById('loading-screen');
 const loginForm = document.getElementById('login-form');
 const usernameInput = document.getElementById('username');
 const passwordInput = document.getElementById('password');
+const pinInput = document.getElementById('pin');
+const pinGroup = document.getElementById('pin-group');
 const loginBtn = document.getElementById('login-btn');
 const logoutBtn = document.getElementById('logout-btn');
+const generatePinBtn = document.getElementById('generate-pin-btn');
+const otpModal = document.getElementById('otp-modal');
+const verifyOtpBtn = document.getElementById('verify-otp');
+const resendOtpBtn = document.getElementById('resend-otp');
+const otpTimer = document.getElementById('otp-timer');
+const attemptsCounter = document.getElementById('attempts-counter');
+const attemptsCount = document.getElementById('attempts-count');
+const warningMessage = document.getElementById('warning-message');
+const warningText = document.getElementById('warning-text');
+const lockedMessage = document.getElementById('locked-message');
+const unlockTime = document.getElementById('unlock-time');
+const blacklistNotice = document.getElementById('blacklist-notice');
+const modalClose = document.getElementById('modal-close');
+const otpDigits = document.querySelectorAll('.otp-digit');
 const currentUserSpan = document.getElementById('current-user');
 const userAvatar = document.getElementById('user-avatar');
-const uploadProgressBar = document.getElementById('upload-progress');
-const fileInput = document.getElementById('file-input');
-const dropArea = document.getElementById('drop-area');
-const queueCount = document.getElementById('queue-count');
-const queueList = document.getElementById('queue-list');
-const recentFiles = document.getElementById('recent-files');
-const systemLog = document.getElementById('system-log');
-const notificationToast = document.getElementById('notification-toast');
+const sessionWarning = document.getElementById('session-warning');
+const sessionTimerSpan = document.getElementById('session-timer');
+const extendSessionBtn = document.getElementById('extend-session');
+const logoutNowBtn = document.getElementById('logout-now');
 
-// ====== INITIALIZATION ======
+// ====== تهيئة النظام ======
 document.addEventListener('DOMContentLoaded', function() {
-    initParticles();
-    initEventListeners();
-    initFakeData();
-    updateLiveStats();
+    console.log('🚀 Hostinger x Team Platform Initializing...');
+    
+    initializeApplication();
+    setupEventListeners();
+    checkPreviousSession();
+    initializeSecurity();
+    simulateLoading();
+    
+    console.log('✅ Platform Ready!');
 });
 
-// ====== PARTICLE BACKGROUND ======
-function initParticles() {
-    const particlesContainer = document.getElementById('particles');
-    if (!particlesContainer) return;
+function initializeApplication() {
+    // إخفاء عناصر إضافية في البداية
+    pinGroup.style.display = 'none';
+    warningMessage.style.display = 'none';
+    lockedMessage.style.display = 'none';
+    blacklistNotice.style.display = 'none';
+    attemptsCounter.style.display = 'none';
     
-    const particleCount = 30;
-    for (let i = 0; i < particleCount; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        particle.style.cssText = `
-            position: absolute;
-            width: ${Math.random() * 4 + 2}px;
-            height: ${Math.random() * 4 + 2}px;
-            background: rgba(67, 97, 238, ${Math.random() * 0.4 + 0.1});
-            border-radius: 50%;
-            top: ${Math.random() * 100}%;
-            left: ${Math.random() * 100}%;
-            animation: float ${Math.random() * 20 + 10}s linear infinite;
-        `;
-        particlesContainer.appendChild(particle);
-    }
-    
-    // Add CSS animation
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes float {
-            0% {
-                transform: translateY(0) translateX(0);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(-100vh) translateX(${Math.random() * 100 - 50}px);
-                opacity: 0;
-            }
-        }
-    `;
-    document.head.appendChild(style);
+    // إعداد وقت الخادم
+    updateServerTime();
+    setInterval(updateServerTime, 1000);
 }
 
-// ====== EVENT LISTENERS ======
-function initEventListeners() {
-    // Login Form
+function setupEventListeners() {
+    console.log('🔧 Setting up event listeners...');
+    
+    // نموذج الدخول
     loginForm.addEventListener('submit', handleLogin);
     
-    // Logout Button
-    logoutBtn.addEventListener('click', handleLogout);
+    // تحقق من المدخلات أثناء الكتابة
+    usernameInput.addEventListener('input', validateUsername);
+    passwordInput.addEventListener('input', validatePassword);
+    pinInput.addEventListener('input', validatePIN);
     
-    // Navigation
-    document.querySelectorAll('.nav-link, .nav-item').forEach(link => {
+    // توليد PIN
+    generatePinBtn.addEventListener('click', generateSecurityPIN);
+    
+    // إدارة OTP
+    verifyOtpBtn.addEventListener('click', verifyOTP);
+    resendOtpBtn.addEventListener('click', resendOTP);
+    modalClose.addEventListener('click', closeOTPModal);
+    
+    // إدارة OTP digits
+    otpDigits.forEach((digit, index) => {
+        digit.addEventListener('input', function(e) {
+            handleOTPInput(e, index);
+        });
+        
+        digit.addEventListener('keydown', function(e) {
+            handleOTPKeyDown(e, index);
+        });
+    });
+    
+    // إدارة الجلسة
+    logoutBtn.addEventListener('click', handleLogout);
+    extendSessionBtn.addEventListener('click', extendSession);
+    logoutNowBtn.addEventListener('click', logoutNow);
+    
+    // التنقل
+    document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', handleNavigation);
     });
     
-    // File Upload
-    fileInput.addEventListener('change', handleFileSelect);
+    // البحث العالمي
+    const globalSearch = document.getElementById('global-search');
+    if (globalSearch) {
+        globalSearch.addEventListener('input', handleGlobalSearch);
+    }
     
-    // Drag and Drop
-    dropArea.addEventListener('dragover', handleDragOver);
-    dropArea.addEventListener('dragleave', handleDragLeave);
-    dropArea.addEventListener('drop', handleDrop);
+    // الإشعارات
+    const notificationsBtn = document.getElementById('notifications-btn');
+    if (notificationsBtn) {
+        notificationsBtn.addEventListener('click', showNotifications);
+    }
     
-    // Upload Area Click
-    dropArea.addEventListener('click', () => fileInput.click());
+    // الإجراءات السريعة
+    const quickUploadBtn = document.getElementById('quick-upload');
+    const quickBackupBtn = document.getElementById('quick-backup');
+    const quickRestartBtn = document.getElementById('quick-restart');
     
-    // FAQ Accordion
-    document.querySelectorAll('.faq-question').forEach(question => {
-        question.addEventListener('click', toggleFAQ);
+    if (quickUploadBtn) quickUploadBtn.addEventListener('click', quickUpload);
+    if (quickBackupBtn) quickBackupBtn.addEventListener('click', createBackup);
+    if (quickRestartBtn) quickRestartBtn.addEventListener('click', restartServices);
+    
+    // تحديث البيانات
+    const refreshDashboard = document.getElementById('refresh-dashboard');
+    if (refreshDashboard) {
+        refreshDashboard.addEventListener('click', refreshDashboardData);
+    }
+    
+    // إغلاق النوافذ المنبثقة بالنقر خارجها
+    document.addEventListener('click', function(event) {
+        if (event.target === otpModal) {
+            closeOTPModal();
+        }
+        if (event.target === sessionWarning) {
+            sessionWarning.style.display = 'none';
+        }
     });
     
-    // Server Controls
-    document.querySelectorAll('.btn-control').forEach(btn => {
-        btn.addEventListener('click', handleServiceControl);
-    });
+    // تتبع النشاط لإعادة تعيين مؤقت الجلسة
+    document.addEventListener('mousemove', resetSessionTimer);
+    document.addEventListener('keypress', resetSessionTimer);
+    document.addEventListener('click', resetSessionTimer);
     
-    // Settings
-    document.getElementById('max-upload').addEventListener('input', updateMaxUploadValue);
-    document.getElementById('save-settings').addEventListener('click', saveSettings);
-    
-    // File Manager
-    document.querySelectorAll('.view-btn').forEach(btn => {
-        btn.addEventListener('click', switchFileView);
-    });
-    
-    // Quick Actions
-    document.getElementById('quick-upload').addEventListener('click', () => {
-        switchSection('upload');
-        fileInput.click();
-    });
-    
-    // Notification Close
-    document.querySelector('.toast-close').addEventListener('click', hideToast);
+    console.log('✅ Event listeners initialized');
 }
 
-// ====== LOGIN/LOGOUT ======
-function handleLogin(e) {
-    e.preventDefault();
+function simulateLoading() {
+    setTimeout(() => {
+        loadingScreen.style.opacity = '0';
+        setTimeout(() => {
+            loadingScreen.style.display = 'none';
+        }, 500);
+    }, 2000);
+}
+
+// ====== نظام الأمان ======
+function initializeSecurity() {
+    // التحقق من حالة القفل السابقة
+    const lockState = localStorage.getItem('accountLockState');
+    if (lockState) {
+        const { locked, until } = JSON.parse(lockState);
+        if (locked && new Date(until) > new Date()) {
+            isAccountLocked = true;
+            lockEndTime = new Date(until);
+            showLockedMessage();
+        }
+    }
     
+    // استعادة عدد المحاولات
+    const attempts = localStorage.getItem('loginAttempts');
+    if (attempts) {
+        loginAttempts = parseInt(attempts);
+        updateAttemptsCounter();
+    }
+    
+    // توليد PIN افتراضي
+    generateSecurityPIN(true);
+}
+
+function validateUsername() {
     const username = usernameInput.value.trim();
-    const password = passwordInput.value.trim();
+    const feedback = document.getElementById('username-feedback');
     
-    // Validate credentials (must be exactly 5 characters)
-    if (username.length !== 5 || password.length !== 5) {
-        showNotification('Username and password must be exactly 5 characters!', 'error');
+    if (username.length === 0) {
+        clearFeedback(feedback);
+        return false;
+    }
+    
+    if (username.length !== 5) {
+        showFeedback(feedback, 'Username must be exactly 5 characters', 'error');
+        return false;
+    }
+    
+    if (!/^[A-Za-z0-9]+$/.test(username)) {
+        showFeedback(feedback, 'Only letters and numbers allowed', 'error');
+        return false;
+    }
+    
+    // التحقق من القائمة السوداء
+    if (BLACKLISTED_USERS.includes(username.toLowerCase())) {
+        showBlacklistNotice(username);
+        return false;
+    }
+    
+    // التحقق من الأنماط المشبوهة
+    if (SUSPICIOUS_PATTERNS.includes(username.toLowerCase())) {
+        showFeedback(feedback, 'This username pattern is not allowed', 'warning');
+        return false;
+    }
+    
+    showFeedback(feedback, '✓ Username is valid', 'success');
+    return true;
+}
+
+function validatePassword() {
+    const password = passwordInput.value.trim();
+    const feedback = document.getElementById('password-feedback');
+    
+    if (password.length === 0) {
+        clearFeedback(feedback);
+        return false;
+    }
+    
+    if (password.length !== 5) {
+        showFeedback(feedback, 'Password must be exactly 5 characters', 'error');
+        return false;
+    }
+    
+    if (!/^[A-Za-z0-9]+$/.test(password)) {
+        showFeedback(feedback, 'Only letters and numbers allowed', 'error');
+        return false;
+    }
+    
+    // التحقق من قوة كلمة المرور
+    const strength = checkPasswordStrength(password);
+    if (strength === 'weak') {
+        showFeedback(feedback, 'Password is too weak', 'warning');
+    } else {
+        showFeedback(feedback, '✓ Password is valid', 'success');
+    }
+    
+    return true;
+}
+
+function validatePIN() {
+    const pin = pinInput.value.trim();
+    const feedback = document.getElementById('pin-feedback');
+    
+    if (pin.length === 0) {
+        clearFeedback(feedback);
+        return false;
+    }
+    
+    if (pin.length !== 5) {
+        showFeedback(feedback, 'PIN must be exactly 5 digits', 'error');
+        return false;
+    }
+    
+    if (!/^\d{5}$/.test(pin)) {
+        showFeedback(feedback, 'Only digits allowed', 'error');
+        return false;
+    }
+    
+    showFeedback(feedback, '✓ PIN is valid', 'success');
+    return true;
+}
+
+function checkPasswordStrength(password) {
+    if (password.length < 5) return 'very-weak';
+    
+    const hasLetters = /[A-Za-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    
+    if (hasLetters && hasNumbers) return 'strong';
+    if (hasLetters || hasNumbers) return 'medium';
+    return 'weak';
+}
+
+function generateSecurityPIN(silent = false) {
+    securityPIN = Math.floor(10000 + Math.random() * 90000).toString();
+    
+    if (!silent) {
+        showNotification(`Security PIN generated: ${securityPIN}`, 'info');
+        
+        // إظهار حقل PIN
+        pinGroup.style.display = 'block';
+        pinInput.value = '';
+        pinInput.focus();
+        
+        // إضافة إلى سجل النظام
+        logSecurityEvent('Security PIN generated', {
+            timestamp: new Date().toISOString(),
+            pin: securityPIN
+        });
+    }
+    
+    return securityPIN;
+}
+
+function checkBlacklist(username) {
+    return BLACKLISTED_USERS.includes(username.toLowerCase());
+}
+
+function increaseLoginAttempts(username) {
+    loginAttempts++;
+    localStorage.setItem('loginAttempts', loginAttempts);
+    updateAttemptsCounter();
+    
+    if (loginAttempts >= MAX_LOGIN_ATTEMPTS) {
+        lockAccount();
         return;
     }
     
-    // Show loading state
-    const loader = loginBtn.querySelector('.btn-loader');
-    loader.style.display = 'block';
-    loginBtn.disabled = true;
+    const remaining = MAX_LOGIN_ATTEMPTS - loginAttempts;
+    showWarning(`Invalid credentials. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`);
     
-    // Simulate API call
+    // تسجيل محاولة الدخول الفاشلة
+    logSecurityEvent('Failed login attempt', {
+        username: username,
+        attempts: loginAttempts,
+        ip: userSession.ipAddress,
+        timestamp: new Date().toISOString()
+    });
+}
+
+function lockAccount() {
+    isAccountLocked = true;
+    lockEndTime = new Date(Date.now() + 5 * 60 * 1000); // قفل لمدة 5 دقائق
+    
+    // حفظ حالة القفل
+    localStorage.setItem('accountLockState', JSON.stringify({
+        locked: true,
+        until: lockEndTime.toISOString()
+    }));
+    
+    showLockedMessage();
+    
+    // تسجيل حدث القفل
+    logSecurityEvent('Account locked due to multiple failed attempts', {
+        lockDuration: '5 minutes',
+        lockUntil: lockEndTime.toISOString()
+    });
+}
+
+function unlockAccount() {
+    isAccountLocked = false;
+    loginAttempts = 0;
+    localStorage.removeItem('accountLockState');
+    localStorage.removeItem('loginAttempts');
+    
+    attemptsCounter.style.display = 'none';
+    lockedMessage.style.display = 'none';
+    
+    logSecurityEvent('Account unlocked', {
+        timestamp: new Date().toISOString()
+    });
+}
+
+function updateAttemptsCounter() {
+    if (loginAttempts > 0) {
+        attemptsCounter.style.display = 'flex';
+        attemptsCount.textContent = loginAttempts;
+    } else {
+        attemptsCounter.style.display = 'none';
+    }
+}
+
+// ====== معالجة الدخول ======
+function handleLogin(e) {
+    e.preventDefault();
+    
+    if (!validateLoginForm()) {
+        return;
+    }
+    
+    const username = usernameInput.value.trim();
+    
+    // التحقق من القفل
+    if (isAccountLocked) {
+        const now = new Date();
+        if (now < lockEndTime) {
+            const minutes = Math.ceil((lockEndTime - now) / 60000);
+            showWarning(`Account is locked. Try again in ${minutes} minute${minutes !== 1 ? 's' : ''}.`);
+            return;
+        } else {
+            unlockAccount();
+        }
+    }
+    
+    // التحقق من القائمة السوداء
+    if (checkBlacklist(username)) {
+        showBlacklistNotice(username);
+        return;
+    }
+    
+    // التحقق من PIN إذا كان ظاهراً
+    if (pinGroup.style.display === 'block') {
+        const pin = pinInput.value.trim();
+        if (pin !== securityPIN) {
+            showWarning('Invalid security PIN');
+            pinInput.focus();
+            increaseLoginAttempts(username);
+            return;
+        }
+    }
+    
+    // بدء عملية المصادقة
+    authenticateUser(username);
+}
+
+function validateLoginForm() {
+    const isUsernameValid = validateUsername();
+    const isPasswordValid = validatePassword();
+    
+    if (pinGroup.style.display === 'block') {
+        const isPINValid = validatePIN();
+        return isUsernameValid && isPasswordValid && isPINValid;
+    }
+    
+    return isUsernameValid && isPasswordValid;
+}
+
+function authenticateUser(username) {
+    const password = passwordInput.value.trim();
+    
+    // إظهار حالة التحميل
+    showLoginLoading();
+    
+    // محاكاة تأخير الشبكة
     setTimeout(() => {
-        currentUser = username.toUpperCase();
-        currentUserSpan.textContent = currentUser;
-        userAvatar.textContent = currentUser.substring(0, 2);
+        // في بيئة حقيقية، هنا يتم الاتصال بالسيرفر
+        const isAuthenticated = simulateServerAuthentication(username, password);
         
-        // Add to system log
-        addSystemLog(`User '${currentUser}' logged in successfully`, 'success');
-        
-        // Switch screens
-        loginScreen.classList.remove('active');
-        dashboardScreen.classList.add('active');
-        
-        // Reset form
-        loginForm.reset();
-        loader.style.display = 'none';
-        loginBtn.disabled = false;
-        
-        // Show welcome notification
-        showNotification(`Welcome back, ${currentUser}!`, 'success');
-        
-        // Update stats
-        updateLiveStats();
+        if (isAuthenticated) {
+            // التحقق من OTP إذا مطلوب
+            if (requiresTwoFactor(username)) {
+                hideLoginLoading();
+                showOTPModal();
+            } else {
+                completeLogin(username);
+            }
+        } else {
+            hideLoginLoading();
+            increaseLoginAttempts(username);
+            showWarning('Invalid username or password');
+        }
     }, 1500);
 }
 
+function simulateServerAuthentication(username, password) {
+    // في تطبيق حقيقي، هنا يتم الاتصال بالسيرفر
+    // هذه مجرد محاكاة للاختبار
+    
+    // أسماء مستخدمين وهمية مسموحة
+    const validUsers = {
+        'ADMIN1': 'PASS1',
+        'USER01': 'PASS2',
+        'TEST01': 'TEST1',
+        'HOST01': 'HOST1',
+        'TEAM01': 'TEAM1'
+    };
+    
+    return validUsers[username.toUpperCase()] === password.toUpperCase();
+}
+
+function requiresTwoFactor(username) {
+    // في تطبيق حقيقي، يتم التحقق من إعدادات المستخدم
+    // هنا نطلب OTP للمستخدمين المميزين فقط
+    const premiumUsers = ['ADMIN1', 'HOST01'];
+    return premiumUsers.includes(username.toUpperCase());
+}
+
+function completeLogin(username) {
+    // إخفاء شاشة التحميل
+    hideLoginLoading();
+    
+    // إعادة تعيين المحاولات
+    loginAttempts = 0;
+    localStorage.removeItem('loginAttempts');
+    
+    // تعيين المستخدم الحالي
+    currentUser = username.toUpperCase();
+    currentUserSpan.textContent = currentUser;
+    userAvatar.innerHTML = `<span>${currentUser.substring(0, 2)}</span>`;
+    
+    // تهيئة الجلسة
+    initializeUserSession();
+    
+    // إضافة إلى سجل النظام
+    logSecurityEvent('User logged in successfully', {
+        username: currentUser,
+        timestamp: new Date().toISOString(),
+        ip: userSession.ipAddress,
+        device: userSession.deviceInfo
+    });
+    
+    // تبديل الشاشات
+    switchToDashboard();
+    
+    // إظهار إشعار الترحيب
+    showNotification(`Welcome back, ${currentUser}!`, 'success');
+    
+    // بدء مؤقت الجلسة
+    startSessionTimer();
+}
+
+function initializeUserSession() {
+    userSession = {
+        startTime: new Date(),
+        lastActivity: new Date(),
+        ipAddress: getClientIP(),
+        deviceInfo: getDeviceInfo(),
+        token: generateSessionToken()
+    };
+    
+    // حفظ الجلسة
+    localStorage.setItem('userSession', JSON.stringify(userSession));
+}
+
+function checkPreviousSession() {
+    const savedSession = localStorage.getItem('userSession');
+    if (savedSession) {
+        const session = JSON.parse(savedSession);
+        const sessionAge = new Date() - new Date(session.lastActivity);
+        
+        // إذا كانت الجلسة حديثة (أقل من 30 دقيقة)
+        if (sessionAge < 30 * 60 * 1000) {
+            // تخطي شاشة الدخول
+            currentUser = session.username || 'ADMIN';
+            currentUserSpan.textContent = currentUser;
+            userAvatar.innerHTML = `<span>${currentUser.substring(0, 2)}</span>`;
+            switchToDashboard();
+            startSessionTimer();
+        } else {
+            // مسح الجلسة القديمة
+            localStorage.removeItem('userSession');
+        }
+    }
+}
+
+// ====== نظام OTP ======
+function showOTPModal() {
+    generateOTP();
+    otpModal.style.display = 'flex';
+    
+    // بدء المؤقت
+    startOTPTimer();
+    
+    // تفعيل زر التحقق
+    verifyOtpBtn.disabled = true;
+    
+    // إعادة تعيين الحقول
+    otpDigits.forEach(digit => digit.value = '');
+    otpDigits[0].focus();
+}
+
+function closeOTPModal() {
+    otpModal.style.display = 'none';
+    clearOTPTimer();
+}
+
+function generateOTP() {
+    otpCode = Math.floor(10000 + Math.random() * 90000).toString();
+    console.log(`Generated OTP: ${otpCode}`); // في الإنتاج، يتم إرساله بالبريد أو SMS
+    
+    logSecurityEvent('OTP generated', {
+        forUser: currentUser,
+        otp: otpCode,
+        timestamp: new Date().toISOString()
+    });
+}
+
+function handleOTPInput(event, index) {
+    const digit = event.target;
+    const value = digit.value;
+    
+    // السماح بالأرقام فقط
+    if (!/^\d$/.test(value)) {
+        digit.value = '';
+        return;
+    }
+    
+    // الانتقال للحقل التالي
+    if (index < otpDigits.length - 1) {
+        otpDigits[index + 1].focus();
+    }
+    
+    // التحقق من اكتمال OTP
+    checkOTPCompletion();
+}
+
+function handleOTPKeyDown(event, index) {
+    if (event.key === 'Backspace') {
+        if (otpDigits[index].value === '' && index > 0) {
+            otpDigits[index - 1].focus();
+        }
+    } else if (event.key === 'ArrowLeft' && index > 0) {
+        otpDigits[index - 1].focus();
+    } else if (event.key === 'ArrowRight' && index < otpDigits.length - 1) {
+        otpDigits[index + 1].focus();
+    }
+}
+
+function checkOTPCompletion() {
+    const enteredOTP = Array.from(otpDigits).map(d => d.value).join('');
+    verifyOtpBtn.disabled = enteredOTP.length !== 5;
+}
+
+function verifyOTP() {
+    const enteredOTP = Array.from(otpDigits).map(d => d.value).join('');
+    
+    if (enteredOTP === otpCode) {
+        closeOTPModal();
+        completeLogin(currentUser);
+        
+        logSecurityEvent('OTP verified successfully', {
+            username: currentUser,
+            timestamp: new Date().toISOString()
+        });
+    } else {
+        showWarning('Invalid OTP code');
+        otpDigits.forEach(digit => digit.value = '');
+        otpDigits[0].focus();
+        verifyOtpBtn.disabled = true;
+        
+        logSecurityEvent('Invalid OTP entered', {
+            username: currentUser,
+            enteredOTP: enteredOTP
+        });
+    }
+}
+
+function resendOTP() {
+    generateOTP();
+    startOTPTimer();
+    
+    otpDigits.forEach(digit => digit.value = '');
+    otpDigits[0].focus();
+    verifyOtpBtn.disabled = true;
+    
+    showNotification('New OTP code sent', 'info');
+}
+
+function startOTPTimer() {
+    let timeLeft = 120; // 120 ثانية
+    
+    clearOTPTimer();
+    
+    otpTimer.textContent = formatTime(timeLeft);
+    
+    otpTimerInterval = setInterval(() => {
+        timeLeft--;
+        otpTimer.textContent = formatTime(timeLeft);
+        
+        if (timeLeft <= 0) {
+            clearOTPTimer();
+            verifyOtpBtn.disabled = true;
+            showWarning('OTP code expired');
+        }
+    }, 1000);
+}
+
+function clearOTPTimer() {
+    if (otpTimerInterval) {
+        clearInterval(otpTimerInterval);
+    }
+}
+
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+// ====== إدارة الجلسة ======
+function startSessionTimer() {
+    // مسح أي مؤقت سابق
+    if (sessionTimer) {
+        clearInterval(sessionTimer);
+    }
+    
+    let timeLeft = 30 * 60; // 30 دقيقة بالثواني
+    
+    // تحديث المؤقت كل ثانية
+    sessionTimer = setInterval(() => {
+        timeLeft--;
+        
+        if (timeLeft <= 300 && timeLeft > 0) { // 5 دقائق متبقية
+            if (!sessionWarning.style.display || sessionWarning.style.display === 'none') {
+                showSessionWarning(timeLeft);
+            } else {
+                sessionTimerSpan.textContent = Math.ceil(timeLeft / 60);
+            }
+        }
+        
+        if (timeLeft <= 0) {
+            endSession();
+        }
+    }, 1000);
+}
+
+function resetSessionTimer() {
+    if (sessionTimer) {
+        // إعادة تعيين المؤقت للقيمة الأصلية
+        clearInterval(sessionTimer);
+        startSessionTimer();
+        
+        // تحديث وقت النشاط الأخير
+        userSession.lastActivity = new Date();
+        localStorage.setItem('userSession', JSON.stringify(userSession));
+    }
+}
+
+function showSessionWarning(timeLeft) {
+    const minutesLeft = Math.ceil(timeLeft / 60);
+    sessionTimerSpan.textContent = minutesLeft;
+    sessionWarning.style.display = 'flex';
+}
+
+function extendSession() {
+    sessionWarning.style.display = 'none';
+    resetSessionTimer();
+    
+    showNotification('Session extended for 30 minutes', 'success');
+    
+    logSecurityEvent('Session extended', {
+        username: currentUser,
+        timestamp: new Date().toISOString()
+    });
+}
+
+function logoutNow() {
+    sessionWarning.style.display = 'none';
+    handleLogout();
+}
+
+function endSession() {
+    if (sessionTimer) {
+        clearInterval(sessionTimer);
+    }
+    
+    showNotification('Your session has expired', 'warning');
+    handleLogout();
+}
+
 function handleLogout() {
-    // Add to system log
-    addSystemLog(`User '${currentUser}' logged out`, 'info');
+    // مسح مؤقت الجلسة
+    if (sessionTimer) {
+        clearInterval(sessionTimer);
+    }
     
-    // Switch screens
-    dashboardScreen.classList.remove('active');
-    loginScreen.classList.add('active');
+    // تسجيل خروج
+    logSecurityEvent('User logged out', {
+        username: currentUser,
+        timestamp: new Date().toISOString(),
+        sessionDuration: getSessionDuration()
+    });
     
-    // Reset
+    // مسح الجلسة
+    localStorage.removeItem('userSession');
+    
+    // إعادة تعيين البيانات
     currentUser = '';
+    loginAttempts = 0;
+    localStorage.removeItem('loginAttempts');
     
-    // Show notification
+    // إعادة تعيين النموذج
+    loginForm.reset();
+    pinGroup.style.display = 'none';
+    warningMessage.style.display = 'none';
+    lockedMessage.style.display = 'none';
+    blacklistNotice.style.display = 'none';
+    attemptsCounter.style.display = 'none';
+    
+    // تبديل الشاشات
+    switchToLogin();
+    
+    // إظهار رسالة
     showNotification('You have been logged out successfully', 'info');
 }
 
-// ====== NAVIGATION ======
-function handleNavigation(e) {
-    e.preventDefault();
-    const section = this.dataset.section || this.getAttribute('href').substring(1);
+function getSessionDuration() {
+    if (!userSession.startTime) return '0m';
     
-    // Update active nav items
-    document.querySelectorAll('.nav-link, .nav-item').forEach(item => {
-        item.classList.remove('active');
-    });
-    this.classList.add('active');
+    const start = new Date(userSession.startTime);
+    const end = new Date();
+    const duration = end - start;
     
-    // Switch section
-    switchSection(section);
+    const minutes = Math.floor(duration / 60000);
+    return `${minutes}m`;
 }
 
-function switchSection(sectionId) {
-    // Hide all sections
+// ====== التنقل ======
+function switchToDashboard() {
+    loginScreen.classList.remove('active');
+    dashboardScreen.classList.add('active');
+    
+    // تحميل بيانات Dashboard
+    loadDashboardData();
+}
+
+function switchToLogin() {
+    dashboardScreen.classList.remove('active');
+    loginScreen.classList.add('active');
+}
+
+function handleNavigation(e) {
+    e.preventDefault();
+    
+    const target = e.currentTarget;
+    const section = target.dataset.section;
+    
+    // تحديث التنقل النشط
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+    });
+    target.classList.add('active');
+    
+    // إظهار القسم المحدد
+    showSection(section);
+    
+    // تسجيل النشاط
+    logUserActivity(`Navigated to ${section} section`);
+}
+
+function showSection(sectionId) {
+    // إخفاء جميع الأقسام
     document.querySelectorAll('.content-section').forEach(section => {
         section.classList.remove('active');
     });
     
-    // Show target section
-    const targetSection = document.getElementById(`${sectionId}-section`) || 
-                         document.getElementById(`${sectionId}`);
-    
+    // إظهار القسم المطلوب
+    const targetSection = document.getElementById(`${sectionId}-section`);
     if (targetSection) {
         targetSection.classList.add('active');
-    }
-}
-
-// ====== FILE UPLOAD ======
-function handleFileSelect(e) {
-    const files = Array.from(e.target.files);
-    addFilesToQueue(files);
-}
-
-function handleDragOver(e) {
-    e.preventDefault();
-    dropArea.classList.add('dragover');
-}
-
-function handleDragLeave(e) {
-    e.preventDefault();
-    dropArea.classList.remove('dragover');
-}
-
-function handleDrop(e) {
-    e.preventDefault();
-    dropArea.classList.remove('dragover');
-    
-    const files = Array.from(e.dataTransfer.files);
-    addFilesToQueue(files);
-}
-
-function addFilesToQueue(files) {
-    // Check file size (max 300MB)
-    const maxSize = 300 * 1024 * 1024; // 300MB in bytes
-    const validFiles = files.filter(file => {
-        if (file.size > maxSize) {
-            showNotification(`File "${file.name}" exceeds 300MB limit!`, 'error');
-            return false;
+        
+        // تحميل بيانات القسم
+        switch(sectionId) {
+            case 'dashboard':
+                loadDashboardData();
+                break;
+            case 'files':
+                loadFilesData();
+                break;
+            case 'databases':
+                loadDatabasesData();
+                break;
+            case 'settings':
+                loadSettingsData();
+                break;
         }
-        return true;
-    });
-    
-    if (validFiles.length === 0) return;
-    
-    // Add to queue
-    validFiles.forEach(file => {
-        const fileId = Date.now() + Math.random();
-        fileUploadQueue.push({
-            id: fileId,
-            file: file,
-            progress: 0,
-            status: 'queued'
-        });
-    });
-    
-    updateUploadQueue();
-    showNotification(`${validFiles.length} file(s) added to upload queue`, 'success');
-}
-
-function updateUploadQueue() {
-    queueCount.textContent = fileUploadQueue.length;
-    
-    // Update queue list
-    queueList.innerHTML = '';
-    fileUploadQueue.forEach(item => {
-        const queueItem = document.createElement('div');
-        queueItem.className = 'queue-item';
-        queueItem.innerHTML = `
-            <div class="queue-item-info">
-                <div class="queue-item-icon">
-                    <i class="fas fa-file"></i>
-                </div>
-                <div class="queue-item-details">
-                    <h4>${item.file.name}</h4>
-                    <p>${formatFileSize(item.file.size)}</p>
-                </div>
-            </div>
-            <div class="queue-item-progress">
-                <div class="queue-item-progress-fill" style="width: ${item.progress}%"></div>
-            </div>
-        `;
-        queueList.appendChild(queueItem);
-    });
-    
-    // Start upload if not already uploading
-    if (!isUploading && fileUploadQueue.length > 0) {
-        startUpload();
     }
 }
 
-function startUpload() {
-    if (fileUploadQueue.length === 0 || isUploading) return;
+// ====== وظائف Dashboard ======
+function loadDashboardData() {
+    // تحديث الإحصائيات
+    updateDashboardStats();
     
-    isUploading = true;
-    const item = fileUploadQueue[0];
-    item.status = 'uploading';
+    // تحديث النشاطات الحديثة
+    updateRecentActivity();
     
-    // Show progress bar
-    uploadProgressBar.classList.add('active');
-    
-    // Simulate upload progress
-    const interval = setInterval(() => {
-        item.progress += Math.random() * 10;
-        if (item.progress >= 100) {
-            item.progress = 100;
-            clearInterval(interval);
-            completeUpload(item);
-        }
-        updateUploadProgress(item);
-        updateUploadQueue();
-    }, 200);
+    // تحديث حالة الخادم
+    updateServerStatus();
 }
 
-function updateUploadProgress(item) {
-    const progressFill = uploadProgressBar.querySelector('.progress-fill');
-    const progressPercent = uploadProgressBar.querySelector('.progress-percent');
-    const progressSpeed = uploadProgressBar.querySelector('.progress-speed');
-    const progressTime = uploadProgressBar.querySelector('.progress-time');
+function updateDashboardStats() {
+    // هنا يمكن جلب البيانات من السيرفر
+    // حالياً نستخدم بيانات وهمية
     
-    progressFill.style.width = `${item.progress}%`;
-    progressPercent.textContent = `${Math.round(item.progress)}%`;
+    const stats = {
+        totalFiles: Math.floor(Math.random() * 1000) + 500,
+        dbSize: (Math.random() * 5 + 1).toFixed(1),
+        activeUsers: Math.floor(Math.random() * 20) + 5,
+        uptime: '99.97%'
+    };
     
-    // Simulate upload speed and time
-    const speed = Math.random() * 5 + 2;
-    const time = Math.round((100 - item.progress) / speed);
-    
-    progressSpeed.textContent = `${speed.toFixed(1)} MB/s`;
-    progressTime.textContent = `${time}s remaining`;
+    // تحديث واجهة المستخدم
+    // سيتم تطبيق هذا في التحديثات القادمة
 }
 
-function completeUpload(item) {
-    // Remove from queue
-    fileUploadQueue = fileUploadQueue.filter(i => i.id !== item.id);
-    
-    // Add to recent files
-    addRecentFile(item.file);
-    
-    // Add to system log
-    addSystemLog(`File "${item.file.name}" uploaded successfully`, 'success');
-    
-    // Update live stats
-    updateLiveStats();
-    
-    // Update queue
-    updateUploadQueue();
-    
-    // Hide progress bar if queue is empty
-    if (fileUploadQueue.length === 0) {
-        setTimeout(() => {
-            uploadProgressBar.classList.remove('active');
-            isUploading = false;
-            showNotification('All files uploaded successfully!', 'success');
-        }, 1000);
-    } else {
-        // Start next upload
-        setTimeout(() => {
-            isUploading = false;
-            startUpload();
-        }, 500);
-    }
+function updateRecentActivity() {
+    // تحديث قائمة النشاطات
 }
 
-function addRecentFile(file) {
-    const fileType = getFileType(file.name);
-    const fileSize = formatFileSize(file.size);
-    
-    const fileCard = document.createElement('div');
-    fileCard.className = 'file-card';
-    fileCard.innerHTML = `
-        <div class="file-icon">
-            <i class="${getFileIcon(fileType)}"></i>
-        </div>
-        <h4 title="${file.name}">${truncateFileName(file.name)}</h4>
-        <p class="file-meta">${fileSize} • ${fileType}</p>
-        <div class="file-actions">
-            <button class="file-action" title="Download">
-                <i class="fas fa-download"></i>
-            </button>
-            <button class="file-action" title="Share">
-                <i class="fas fa-share"></i>
-            </button>
-            <button class="file-action" title="Delete">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-    `;
-    
-    // Add to beginning
-    recentFiles.insertBefore(fileCard, recentFiles.firstChild);
-    
-    // Limit to 8 files
-    if (recentFiles.children.length > 8) {
-        recentFiles.removeChild(recentFiles.lastChild);
-    }
+function updateServerStatus() {
+    // تحديث حالة الخادم
 }
 
-// ====== SYSTEM LOG ======
-function addSystemLog(message, type = 'info') {
-    const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-    const logEntry = document.createElement('div');
-    logEntry.className = `log-entry ${type}`;
-    logEntry.innerHTML = `
-        <span class="log-time">[${timestamp}]</span>
-        <span class="log-message">${message}</span>
-    `;
+function refreshDashboardData() {
+    showNotification('Refreshing dashboard data...', 'info');
     
-    // Add to beginning
-    systemLog.insertBefore(logEntry, systemLog.firstChild);
-    
-    // Limit to 50 entries
-    if (systemLog.children.length > 50) {
-        systemLog.removeChild(systemLog.lastChild);
-    }
-    
-    // Save to array
-    systemLogs.unshift({timestamp, message, type});
-    if (systemLogs.length > 100) systemLogs.pop();
-}
-
-// ====== SERVER CONTROL ======
-function handleServiceControl(e) {
-    e.stopPropagation();
-    
-    const button = e.currentTarget;
-    const serviceCard = button.closest('.service-card');
-    const service = serviceCard.dataset.service;
-    const action = button.dataset.action;
-    
-    // Get service name
-    const serviceName = serviceCard.querySelector('h4').textContent;
-    
-    // Disable all buttons temporarily
-    const buttons = serviceCard.querySelectorAll('.btn-control');
-    buttons.forEach(btn => btn.disabled = true);
-    
-    // Update status
-    const statusDot = serviceCard.querySelector('.status-dot');
-    const statusText = serviceCard.querySelector('.service-status span:nth-child(2)');
-    
-    switch(action) {
-        case 'stop':
-            statusDot.style.background = 'var(--danger)';
-            statusText.textContent = 'Stopping...';
-            setTimeout(() => {
-                statusText.textContent = 'Stopped';
-                addSystemLog(`${serviceName} service stopped`, 'warning');
-                showNotification(`${serviceName} stopped successfully`, 'warning');
-                buttons.forEach(btn => btn.disabled = false);
-            }, 2000);
-            break;
-            
-        case 'restart':
-            statusDot.style.background = 'var(--warning)';
-            statusText.textContent = 'Restarting...';
-            setTimeout(() => {
-                statusDot.style.background = 'var(--success)';
-                statusText.textContent = 'Running';
-                addSystemLog(`${serviceName} service restarted`, 'success');
-                showNotification(`${serviceName} restarted successfully`, 'success');
-                buttons.forEach(btn => btn.disabled = false);
-            }, 3000);
-            break;
-            
-        case 'logs':
-            showNotification(`Opening ${serviceName} logs...`, 'info');
-            setTimeout(() => {
-                buttons.forEach(btn => btn.disabled = false);
-            }, 1000);
-            break;
-    }
-}
-
-// ====== SETTINGS ======
-function updateMaxUploadValue() {
-    const slider = document.getElementById('max-upload');
-    const valueSpan = document.getElementById('max-upload-value');
-    valueSpan.textContent = `${slider.value} MB`;
-}
-
-function saveSettings() {
-    const serverName = document.getElementById('server-name').value;
-    const maxUpload = document.getElementById('max-upload').value;
-    const phpVersion = document.getElementById('php-version').value;
-    const autoBackup = document.getElementById('auto-backup').checked;
-    const maintenanceMode = document.getElementById('maintenance-mode').checked;
-    
-    // Show loading
-    const saveBtn = document.getElementById('save-settings');
-    const originalText = saveBtn.innerHTML;
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-    saveBtn.disabled = true;
-    
-    // Simulate API call
     setTimeout(() => {
-        // Update system log
-        addSystemLog('Server settings updated successfully', 'success');
-        
-        // Show notification
-        showNotification('Settings saved successfully!', 'success');
-        
-        // Reset button
-        saveBtn.innerHTML = originalText;
-        saveBtn.disabled = false;
-    }, 1500);
+        loadDashboardData();
+        showNotification('Dashboard data updated', 'success');
+    }, 1000);
 }
 
-// ====== FILE MANAGER ======
-function switchFileView(e) {
-    const view = this.dataset.view;
+// ====== وظائف الملفات ======
+function loadFilesData() {
+    // تحميل بيانات الملفات
+}
+
+function quickUpload() {
+    showNotification('Opening file upload dialog...', 'info');
+    // هنا سيتم فتح نافذة رفع الملفات
+}
+
+// ====== وظائف النسخ الاحتياطي ======
+function createBackup() {
+    const backupBtn = document.getElementById('quick-backup');
+    const originalText = backupBtn.innerHTML;
     
-    // Update active button
-    document.querySelectorAll('.view-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    this.classList.add('active');
+    backupBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+    backupBtn.disabled = true;
     
-    // Switch view
-    const gridView = document.getElementById('files-grid');
-    const listView = document.getElementById('files-list');
-    
-    if (view === 'grid') {
-        gridView.style.display = 'grid';
-        listView.style.display = 'none';
-    } else {
-        gridView.style.display = 'none';
-        listView.style.display = 'block';
+    setTimeout(() => {
+        backupBtn.innerHTML = originalText;
+        backupBtn.disabled = false;
+        
+        const backupSize = (Math.random() * 500 + 100).toFixed(1);
+        showNotification(`Backup created successfully! Size: ${backupSize} MB`, 'success');
+        
+        logUserActivity('Created system backup');
+    }, 3000);
+}
+
+// ====== وظائف الخادم ======
+function restartServices() {
+    if (confirm('Are you sure you want to restart all services? This may cause temporary downtime.')) {
+        showNotification('Restarting services...', 'warning');
+        
+        setTimeout(() => {
+            showNotification('All services restarted successfully', 'success');
+            
+            logUserActivity('Restarted all services');
+        }, 5000);
     }
 }
 
-// ====== FAQ ======
-function toggleFAQ() {
-    const faqItem = this.parentElement;
-    faqItem.classList.toggle('active');
-}
-
-// ====== NOTIFICATIONS ======
-function showNotification(message, type = 'success') {
-    const toast = document.getElementById('notification-toast');
-    const toastIcon = toast.querySelector('i');
-    const toastMessage = toast.querySelector('.toast-message');
+// ====== البحث ======
+function handleGlobalSearch(e) {
+    const query = e.target.value.toLowerCase();
     
-    // Update icon and message
-    switch(type) {
-        case 'success':
-            toastIcon.className = 'fas fa-check-circle';
-            toast.style.borderLeftColor = 'var(--success)';
-            break;
-        case 'error':
-            toastIcon.className = 'fas fa-exclamation-circle';
-            toast.style.borderLeftColor = 'var(--danger)';
-            break;
-        case 'warning':
-            toastIcon.className = 'fas fa-exclamation-triangle';
-            toast.style.borderLeftColor = 'var(--warning)';
-            break;
-        case 'info':
-            toastIcon.className = 'fas fa-info-circle';
-            toast.style.borderLeftColor = 'var(--info)';
-            break;
+    if (query.length < 2) {
+        return;
     }
     
-    toastMessage.textContent = message;
-    
-    // Show toast
-    toast.classList.add('show');
-    
-    // Auto hide after 5 seconds
-    setTimeout(hideToast, 5000);
+    // البحث في البيانات
+    // سيتم تطبيق البحث الحقيقي في التحديثات القادمة
 }
 
-function hideToast() {
-    notificationToast.classList.remove('show');
+// ====== الإشعارات ======
+function showNotifications() {
+    // عرض قائمة الإشعارات
+    showNotification('Notifications feature coming soon!', 'info');
 }
 
-// ====== LIVE STATS ======
-function updateLiveStats() {
-    // Update online users (random between 5-15)
-    const onlineUsers = Math.floor(Math.random() * 10) + 5;
-    document.getElementById('online-users').textContent = onlineUsers;
-    document.getElementById('online-users-count').textContent = onlineUsers;
-    
-    // Update active files (random between 100-200)
-    const activeFiles = Math.floor(Math.random() * 100) + 100;
-    document.getElementById('active-files-count').textContent = activeFiles;
-    document.getElementById('online-files').textContent = activeFiles;
-    
-    // Update response time (random between 20-50ms)
-    const responseTime = Math.floor(Math.random() * 30) + 20;
-    document.getElementById('response-time').textContent = `${responseTime}ms`;
-    
-    // Update offline files (random between 10-30)
-    const offlineFiles = Math.floor(Math.random() * 20) + 10;
-    document.getElementById('offline-files').textContent = offlineFiles;
-    
-    // Update every 30 seconds
-    setTimeout(updateLiveStats, 30000);
+// ====== وظائف المساعدة ======
+function showLoginLoading() {
+    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
+    loginBtn.disabled = true;
 }
 
-// ====== UTILITY FUNCTIONS ======
-function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+function hideLoginLoading() {
+    loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login to Dashboard';
+    loginBtn.disabled = false;
 }
 
-function getFileType(filename) {
-    const extension = filename.split('.').pop().toLowerCase();
-    const fileTypes = {
-        'php': 'PHP Script',
-        'py': 'Python Script',
-        'js': 'JavaScript',
-        'html': 'HTML Document',
-        'css': 'Stylesheet',
-        'json': 'JSON Data',
-        'txt': 'Text File',
-        'zip': 'ZIP Archive',
-        'rar': 'RAR Archive',
-        'gz': 'GZIP Archive',
-        'jpg': 'JPEG Image',
-        'jpeg': 'JPEG Image',
-        'png': 'PNG Image',
-        'gif': 'GIF Image',
-        'pdf': 'PDF Document',
-        'doc': 'Word Document',
-        'docx': 'Word Document',
-        'xls': 'Excel Spreadsheet',
-        'xlsx': 'Excel Spreadsheet'
+function showWarning(message) {
+    warningText.textContent = message;
+    warningMessage.style.display = 'flex';
+    
+    setTimeout(() => {
+        warningMessage.style.display = 'none';
+    }, 5000);
+}
+
+function showLockedMessage() {
+    if (!isAccountLocked || !lockEndTime) return;
+    
+    const updateTimer = () => {
+        const now = new Date();
+        const diff = lockEndTime - now;
+        
+        if (diff <= 0) {
+            unlockAccount();
+            return;
+        }
+        
+        const minutes = Math.ceil(diff / 60000);
+        unlockTime.textContent = `${minutes}:00`;
+        
+        setTimeout(updateTimer, 1000);
     };
-    return fileTypes[extension] || 'Unknown File';
-}
-
-function getFileIcon(fileType) {
-    const iconMap = {
-        'PHP Script': 'fab fa-php',
-        'Python Script': 'fab fa-python',
-        'JavaScript': 'fab fa-js',
-        'HTML Document': 'fab fa-html5',
-        'Stylesheet': 'fab fa-css3-alt',
-        'JSON Data': 'fas fa-code',
-        'Text File': 'fas fa-file-alt',
-        'ZIP Archive': 'fas fa-file-archive',
-        'RAR Archive': 'fas fa-file-archive',
-        'GZIP Archive': 'fas fa-file-archive',
-        'JPEG Image': 'fas fa-file-image',
-        'PNG Image': 'fas fa-file-image',
-        'GIF Image': 'fas fa-file-image',
-        'PDF Document': 'fas fa-file-pdf',
-        'Word Document': 'fas fa-file-word',
-        'Excel Spreadsheet': 'fas fa-file-excel',
-        'Unknown File': 'fas fa-file'
-    };
-    return iconMap[fileType] || 'fas fa-file';
-}
-
-function truncateFileName(filename, maxLength = 20) {
-    if (filename.length <= maxLength) return filename;
-    const extension = filename.split('.').pop();
-    const name = filename.substring(0, maxLength - extension.length - 4);
-    return name + '...' + extension;
-}
-
-// ====== INITIAL DATA ======
-function initFakeData() {
-    // Add some recent files
-    const fakeFiles = [
-        { name: 'index.php', size: 24576, type: 'PHP Script' },
-        { name: 'app.py', size: 153600, type: 'Python Script' },
-        { name: 'styles.css', size: 8192, type: 'Stylesheet' },
-        { name: 'script.js', size: 16384, type: 'JavaScript' },
-        { name: 'database_backup.zip', size: 157286400, type: 'ZIP Archive' },
-        { name: 'config.json', size: 4096, type: 'JSON Data' },
-        { name: 'readme.txt', size: 2048, type: 'Text File' },
-        { name: 'logo.png', size: 51200, type: 'PNG Image' }
-    ];
     
-    fakeFiles.forEach(file => {
-        const fileCard = document.createElement('div');
-        fileCard.className = 'file-card';
-        fileCard.innerHTML = `
-            <div class="file-icon">
-                <i class="${getFileIcon(file.type)}"></i>
-            </div>
-            <h4 title="${file.name}">${truncateFileName(file.name)}</h4>
-            <p class="file-meta">${formatFileSize(file.size)} • ${file.type}</p>
-            <div class="file-actions">
-                <button class="file-action" title="Download">
-                    <i class="fas fa-download"></i>
-                </button>
-                <button class="file-action" title="Share">
-                    <i class="fas fa-share"></i>
-                </button>
-                <button class="file-action" title="Delete">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `;
-        recentFiles.appendChild(fileCard);
+    lockedMessage.style.display = 'block';
+    updateTimer();
+}
+
+function showBlacklistNotice(username) {
+    blacklistNotice.style.display = 'block';
+    
+    logSecurityEvent('Blacklisted user attempted login', {
+        username: username,
+        timestamp: new Date().toISOString(),
+        ip: getClientIP()
     });
 }
 
-// ====== EXPORT FUNCTIONS (for console debugging) ======
+function showNotification(message, type = 'info', duration = 3000) {
+    // في تطبيق حقيقي، هنا يتم عرض إشعار
+    console.log(`[${type.toUpperCase()}] ${message}`);
+    
+    // يمكن إضافة مكتبة إشعارات هنا
+    alert(message); // مؤقتاً نستخدم alert
+}
+
+function showFeedback(element, message, type) {
+    element.textContent = message;
+    element.className = 'validation-feedback ' + type;
+    element.style.display = 'block';
+}
+
+function clearFeedback(element) {
+    element.textContent = '';
+    element.style.display = 'none';
+}
+
+// ====== وظائف الأمان ======
+function logSecurityEvent(event, data = {}) {
+    const logEntry = {
+        event: event,
+        timestamp: new Date().toISOString(),
+        user: currentUser || 'system',
+        data: data
+    };
+    
+    // في تطبيق حقيقي، هنا يتم إرسال السجل للسيرفر
+    console.log('🔒 Security Event:', logEntry);
+    
+    // حفظ في localStorage للعرض
+    const securityLogs = JSON.parse(localStorage.getItem('securityLogs') || '[]');
+    securityLogs.unshift(logEntry);
+    if (securityLogs.length > 100) securityLogs.pop();
+    localStorage.setItem('securityLogs', JSON.stringify(securityLogs));
+}
+
+function logUserActivity(activity) {
+    console.log(`👤 User Activity: ${currentUser} - ${activity}`);
+}
+
+function generateSessionToken() {
+    return 'token_' + Math.random().toString(36).substr(2) + Date.now().toString(36);
+}
+
+function getClientIP() {
+    // في تطبيق حقيقي، يتم الحصول على IP من السيرفر
+    // هنا نعيد IP وهمي للاختبار
+    return '192.168.1.' + Math.floor(Math.random() * 255);
+}
+
+function getDeviceInfo() {
+    const ua = navigator.userAgent;
+    return {
+        browser: getBrowserName(ua),
+        os: getOSName(ua),
+        platform: navigator.platform
+    };
+}
+
+function getBrowserName(ua) {
+    if (ua.includes('Chrome')) return 'Chrome';
+    if (ua.includes('Firefox')) return 'Firefox';
+    if (ua.includes('Safari')) return 'Safari';
+    if (ua.includes('Edge')) return 'Edge';
+    return 'Unknown';
+}
+
+function getOSName(ua) {
+    if (ua.includes('Windows')) return 'Windows';
+    if (ua.includes('Mac')) return 'macOS';
+    if (ua.includes('Linux')) return 'Linux';
+    if (ua.includes('Android')) return 'Android';
+    if (ua.includes('iOS')) return 'iOS';
+    return 'Unknown';
+}
+
+function updateServerTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-US', { 
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    
+    const serverTimeElement = document.getElementById('server-time');
+    if (serverTimeElement) {
+        serverTimeElement.textContent = timeString;
+    }
+}
+
+// ====== تصدير الوظائف للاستخدام في وحدة التحكم ======
 window.hostingApp = {
+    // نظام الدخول
     login: handleLogin,
     logout: handleLogout,
-    uploadFiles: addFilesToQueue,
-    showNotification: showNotification,
-    addSystemLog: addSystemLog,
+    generatePIN: generateSecurityPIN,
+    
+    // الأمان
+    checkSecurity: () => ({
+        attempts: loginAttempts,
+        locked: isAccountLocked,
+        lockUntil: lockEndTime,
+        session: userSession
+    }),
+    
+    // الإدارة
+    backup: createBackup,
+    restart: restartServices,
+    
+    // المعلومات
     getStats: () => ({
-        onlineUsers: document.getElementById('online-users').textContent,
-        activeFiles: document.getElementById('online-files').textContent,
-        uploadQueue: fileUploadQueue.length
-    })
+        user: currentUser,
+        sessionTime: getSessionDuration(),
+        securityLogs: JSON.parse(localStorage.getItem('securityLogs') || '[]').length
+    }),
+    
+    // المساعدة
+    help: () => {
+        console.log('=== Hostinger x Team Platform ===');
+        console.log('Available commands:');
+        console.log('• hostingApp.login() - Test login');
+        console.log('• hostingApp.logout() - Logout current user');
+        console.log('• hostingApp.generatePIN() - Generate new security PIN');
+        console.log('• hostingApp.checkSecurity() - View security status');
+        console.log('• hostingApp.backup() - Create system backup');
+        console.log('• hostingApp.restart() - Restart services');
+        console.log('• hostingApp.getStats() - View platform statistics');
+    }
 };
 
-console.log('Hostinger x Team Platform Loaded!');
-console.log('Available commands: window.hostingApp.login(), window.hostingApp.logout(), etc.');
+// عرض رسالة الترحيب في الكونسول
+console.log('🚀 Hostinger x Team Platform Loaded!');
+console.log('Type "hostingApp.help()" for available commands.');
