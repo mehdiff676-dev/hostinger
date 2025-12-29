@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hostinger x Team - Advanced Hosting Platform</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="login-screen" class="screen active">
+        <div class="particles" id="particles"></div>
+        <div class="login-container">
+            <div class="logo-header">
+                <div class="logo-animation">
+                    <div class="logo-icon">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <h1 class="logo-text">
+                        <span class="gradient-text">Hostinger</span>
+                        <span class="logo-x">x</span>
+                        <span>Team</span>
+                    </h1>
+                </div>
+                <p class="tagline">Advanced Web Hosting Platform</p>
+                <div class="version-badge">v3.1.0</div>
+            </div>
+            
+            <div class="login-form">
+                <div class="form-header">
+                    <h2><i class="fas fa-user-shield"></i> Secure Access Portal</h2>
+                    <p class="welcome-text">Welcome to Hostinger x Team Control Panel<br>Please enter your credentials to continue</p>
+                </div>
+                
+                <form id="login-form">
+                    <div class="form-group floating-label">
+                        <input type="text" id="username" placeholder=" " minlength="5" maxlength="5" required>
+                        <label for="username">
+                            <i class="fas fa-user-tag"></i> Username
+                        </label>
+                        <div class="input-requirements">
+                            <i class="fas fa-info-circle"></i> Must be exactly 5 characters
+                        </div>
+                        <div class="validation-feedback"></div>
+                    </div>
+                    
+                    <div class="form-group floating-label">
+                        <input type="password" id="password" placeholder=" " minlength="5" maxlength="5" required>
+                        <label for="password">
+                            <i class="fas fa-key"></i> Password
+                        </label>
+                        <div class="input-requirements">
+                            <i class="fas fa-info-circle"></i> Must be exactly 5 characters
+                        </div>
+                        <div class="validation-feedback"></div>
+                    </div>
+                    
+                    <div class="form-group remember-me">
+                        <input type="checkbox" id="remember">
+                        <label for="remember">Remember this device</label>
+                    </div>
+                    
+                    <button type="submit" id="login-btn" class="btn-primary btn-glow">
+                        <i class="fas fa-sign-in-alt"></i> Access Control Panel
+                        <span class="btn-loader"></span>
+                    </button>
+                    
+                    <div class="form-footer">
+                        <a href="#" class="forgot-password">
+                            <i class="fas fa-question-circle"></i> Forgot credentials?
+                        </a>
+                    </div>
+                </form>
+                
+                <div class="security-notice">
+                    <i class="fas fa-shield-check"></i>
+                    <span>Enterprise-grade security • AES-256 encryption • Single session only</span>
+                </div>
+            </div>
+            
+            <div class="features-showcase">
+                <h3><i class="fas fa-rocket"></i> Platform Features</h3>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <h4>File Upload</h4>
+                        <p>Support for PHP, PY, JS, CSS, HTML files</p>
+                        <span class="feature-badge">Up to 300MB</span>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-sliders-h"></i>
+                        </div>
+                        <h4>Server Control</h4>
+                        <p>Full control over services and settings</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-network"></i>
+                        </div>
+                        <h4>Real-time Monitoring</h4>
+                        <p>Live system metrics and analytics</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-users-gear"></i>
+                        </div>
+                        <h4>User Management</h4>
+                        <p>Monitor active users and sessions</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="login-footer">
+            <p>Hostinger x Team © 2023 • Advanced Hosting Platform for PHP + Python</p>
+            <div class="server-info">
+                <span><i class="fas fa-server"></i> Dubai-DC-04</span>
+                <span><i class="fas fa-signal"></i> 99.9% Uptime</span>
+                <span><i class="fas fa-bolt"></i> Powered by Node.js</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Dashboard Screen -->
+    <div id="dashboard-screen" class="screen">
+        <!-- Top Navigation -->
+        <header class="dashboard-header">
+            <div class="header-left">
+                <div class="logo-nav">
+                    <div class="logo-mini">
+                        <i class="fas fa-server"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>Hostinger <span class="logo-x">x</span> Team</h1>
+                        <p class="subtitle">Advanced Hosting Platform • PHP + Python</p>
+                    </div>
+                </div>
+                
+                <nav class="top-nav">
+                    <a href="#" class="nav-link active" data-section="dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#" class="nav-link" data-section="files">
+                        <i class="fas fa-folder"></i>
+                        <span>Files</span>
+                    </a>
+                    <a href="#" class="nav-link" data-section="databases">
+                        <i class="fas fa-database"></i>
+                        <span>Databases</span>
+                    </a>
+                    <a href="#" class="nav-link" data-section="domains">
+                        <i class="fas fa-globe"></i>
+                        <span>Domains</span>
+                    </a>
+                </nav>
+            </div>
+            
+            <div class="header-right">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search files, settings...">
+                </div>
+                
+                <div class="header-actions">
+                    <button class="btn-notification">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-count">3</span>
+                    </button>
+                    <div class="user-menu">
+                        <div class="user-avatar">
+                            <span id="user-avatar">AD</span>
+                        </div>
+                        <div class="user-info">
+                            <span class="username" id="current-user">Admin</span>
+                            <span class="user-role">Super Admin</span>
+                        </div>
+                        <button id="logout-btn" class="btn-logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="dashboard-container">
+                <!-- Sidebar -->
+                <aside class="sidebar">
+                    <div class="sidebar-section">
+                        <h3><i class="fas fa-rocket"></i> Quick Actions</h3>
+                        <div class="quick-actions">
+                            <button class="quick-action" id="quick-upload">
+                                <i class="fas fa-upload"></i>
+                                <span>Upload File</span>
+                            </button>
+                            <button class="quick-action" id="quick-backup">
+                                <i class="fas fa-save"></i>
+                                <span>Create Backup</span>
+                            </button>
+                            <button class="quick-action" id="quick-restart">
+                                <i class="fas fa-redo"></i>
+                                <span>Restart Services</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <h3><i class="fas fa-cog"></i> Server Status</h3>
+                        <div class="server-status">
+                            <div class="status-indicator online">
+                                <div class="pulse"></div>
+                                <div class="status-dot"></div>
+                                <span>All Systems Operational</span>
+                            </div>
+                            <div class="status-metrics">
+                                <div class="metric">
+                                    <span class="metric-label">CPU</span>
+                                    <div class="metric-bar">
+                                        <div class="metric-fill" style="width: 34%"></div>
+                                    </div>
+                                    <span class="metric-value">34%</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">RAM</span>
+                                    <div class="metric-bar">
+                                        <div class="metric-fill" style="width: 62%"></div>
+                                    </div>
+                                    <span class="metric-value">62%</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">Storage</span>
+                                    <div class="metric-bar">
+                                        <div class="metric-fill" style="width: 45%"></div>
+                                    </div>
+                                    <span class="metric-value">45%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-section">
+                        <h3><i class="fas fa-chart-line"></i> Live Stats</h3>
+                        <div class="live-stats">
+                            <div class="stat">
+                                <i class="fas fa-users"></i>
+                                <div>
+                                    <span class="stat-value" id="online-users-count">8</span>
+                                    <span class="stat-label">Users Online</span>
+                                </div>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-file-alt"></i>
+                                <div>
+                                    <span class="stat-value" id="active-files-count">124</span>
+                                    <span class="stat-label">Active Files</span>
+                                </div>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-bolt"></i>
+                                <div>
+                                    <span class="stat-value" id="response-time">28ms</span>
+                                    <span class="stat-label">Response Time</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+                
+                <!-- Main Content Area -->
+                <div class="main-content">
+                    <!-- Upload Section -->
+                    <section id="upload-section" class="content-section active">
+                        <div class="section-header">
+                            <div class="header-content">
+                                <h2><i class="fas fa-cloud-upload-alt"></i> File Upload 🗃️</h2>
+                                <p class="section-description">Upload PHP, Python, and other web files to your hosting space</p>
+                            </div>
+                            <div class="header-actions">
+                                <button class="btn-secondary" id="upload-settings">
+                                    <i class="fas fa-cog"></i> Settings
+                                </button>
+                                <button class="btn-primary" id="bulk-upload">
+                                    <i class="fas fa-layer-group"></i> Bulk Upload
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="upload-container">
+                            <div class="upload-card" id="drop-area">
+                                <div class="upload-icon">
+                                    <i class="fas fa-file-upload"></i>
+                                </div>
+                                <h3>Drag & Drop Files Here</h3>
+                                <p class="upload-subtitle">or click to browse your computer</p>
+                                <p class="file-types">Supported formats: <span>.php .py .html .css .js .json .txt .zip .rar .tar.gz</span></p>
+                                <p class="file-limit">
+                                    <i class="fas fa-info-circle"></i>
+                                    Maximum file size: <strong>300 MB</strong> per file
+                                </p>
+                                <input type="file" id="file-input" multiple>
+                                
+                                <div class="upload-progress" id="upload-progress">
+                                    <div class="progress-header">
+                                        <span>Upload Progress</span>
+                                        <span class="progress-percent">0%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill"></div>
+                                    </div>
+                                    <div class="progress-info">
+                                        <span class="progress-speed">0 KB/s</span>
+                                        <span class="progress-time">--:-- remaining</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="upload-queue" id="upload-queue">
+                                <h3><i class="fas fa-list"></i> Upload Queue (<span id="queue-count">0</span>)</h3>
+                                <div class="queue-list" id="queue-list">
+                                    <!-- Upload queue items will appear here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="recent-uploads">
+                            <div class="section-header">
+                                <h3><i class="fas fa-history"></i> Recently Uploaded Files</h3>
+                                <button class="btn-text" id="clear-history">
+                                    <i class="fas fa-trash"></i> Clear History
+                                </button>
+                            </div>
+                            <div class="files-grid" id="recent-files">
+                                <!-- Recent files will appear here -->
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <!-- FAQ Section -->
+                    <section id="faq-section" class="content-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-question-circle"></i> Frequently Asked Questions</h2>
+                            <p class="section-description">Find answers to common questions about our hosting platform</p>
+                        </div>
+                        
+                        <div class="faq-container">
+                            <div class="faq-search">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="faq-search" placeholder="Search FAQ...">
+                            </div>
+                            
+                            <div class="faq-grid">
+                                <div class="faq-category">
+                                    <h3><i class="fas fa-upload"></i> File Upload</h3>
+                                    <div class="faq-items">
+                                        <div class="faq-item active">
+                                            <div class="faq-question">
+                                                <h4>What file types are supported?</h4>
+                                                <i class="fas fa-chevron-down"></i>
+                                            </div>
+                                            <div class="faq-answer">
+                                                <p>We support PHP, Python (PY), HTML, CSS, JavaScript, JSON, TXT, and archive formats (ZIP, RAR, TAR.GZ). PHP and Python files are automatically executed on our servers.</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="faq-item">
+                                            <div class="faq-question">
+                                                <h4>What is the maximum file size?</h4>
+                                                <i class="fas fa-chevron-down"></i>
+                                            </div>
+                                            <div class="faq-answer">
+                                                <p>You can upload individual files up to <strong>300 MB</strong>. For larger files, please use our FTP service or split them into smaller archives.</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="faq-item">
+                                            <div class="faq-question">
+                                                <h4>How many files can I upload at once?</h4>
+                                                <i class="fas fa-chevron-down"></i>
+                                            </div>
+                                            <div class="faq-answer">
+                                                <p>You can upload up to 50 files simultaneously. The total size of all files in a single batch should not exceed 1 GB.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="faq-category">
+                                    <h3><i class="fas fa-cogs"></i> Server Management</h3>
+                                    <div class="faq-items">
+                                        <div class="faq-item">
+                                            <div class="faq-question">
+                                                <h4>How do I restart a service?</h4>
+                                                <i class="fas fa-chevron-down"></i>
+                                            </div>
+                                            <div class="faq-answer">
+                                                <p>Go to Server Management section, find the service you want to restart, and click the "Restart" button. Services will be temporarily unavailable during restart.</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="faq-item">
+                                            <div class="faq-question">
+                                                <h4>What PHP and Python versions are available?</h4>
+                                                <i class="fas fa-chevron-down"></i>
+                                            </div>
+                                            <div class="faq-answer">
+                                                <p>We support PHP 7.4, 8.0, 8.1, and 8.2. Python versions 3.8, 3.9, and 3.10 are available. You can switch between versions in the server settings.</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="faq-item">
+                                            <div class="faq-question">
+                                                <h4>How do I check server resources?</h4>
+                                                <i class="fas fa-chevron-down"></i>
+                                            </div>
+                                            <div class="faq-answer">
+                                                <p>The System Monitoring panel provides real-time CPU, RAM, storage, and network usage statistics. You can also set up alerts for resource thresholds.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="faq-category">
+                                    <h3><i class="fas fa-shield-alt"></i> Security</h3>
+                                    <div class="faq-items">
+                                        <div class="faq-item">
+                                            <div class="faq-question">
+                                                <h4>Is my data secure?</h4>
+                                                <i class="fas fa-chevron-down"></i>
+                                            </div>
+                                            <div class="faq-answer">
+                                                <p>All data is encrypted with AES-256 encryption, stored on secure servers with daily backups, and protected by enterprise-grade firewalls.</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="faq-item">
+                                            <div class="faq-question">
+                                                <h4>How are file permissions handled?</h4>
+                                                <i class="fas fa-chevron-down"></i>
+                                            </div>
+                                            <div class="faq-answer">
+                                                <p>PHP files have 644 permissions, Python files have 755. You can modify permissions through the File Manager or SSH access.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <!-- File Manager Section -->
+                    <section id="file-manager-section" class="content-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-folder-open"></i> File Manager</h2>
+                            <p class="section-description">Manage files and directories on your hosting space</p>
+                        </div>
+                        
+                        <div class="file-manager-toolbar">
+                            <div class="toolbar-left">
+                                <button class="btn-toolbar" id="new-folder">
+                                    <i class="fas fa-folder-plus"></i> New Folder
+                                </button>
+                                <button class="btn-toolbar" id="upload-here">
+                                    <i class="fas fa-upload"></i> Upload Here
+                                </button>
+                                <button class="btn-toolbar" id="refresh-files">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                            </div>
+                            <div class="toolbar-right">
+                                <div class="view-toggle">
+                                    <button class="view-btn active" data-view="grid">
+                                        <i class="fas fa-th-large"></i>
+                                    </button>
+                                    <button class="view-btn" data-view="list">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                </div>
+                                <div class="sort-select">
+                                    <select id="sort-files">
+                                        <option value="name">Name (A-Z)</option>
+                                        <option value="date">Date (Newest)</option>
+                                        <option value="size">Size (Largest)</option>
+                                        <option value="type">Type</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="file-browser">
+                            <div class="breadcrumb" id="breadcrumb">
+                                <a href="#" class="breadcrumb-item">Home</a>
+                                <span class="breadcrumb-separator">/</span>
+                                <span class="breadcrumb-item active">public_html</span>
+                            </div>
+                            
+                            <div class="files-grid" id="files-grid">
+                                <!-- Files will be loaded here -->
+                            </div>
+                            
+                            <div class="files-list" id="files-list" style="display: none;">
+                                <div class="list-header">
+                                    <div class="list-cell checkbox">
+                                        <input type="checkbox" id="select-all-files">
+                                    </div>
+                                    <div class="list-cell name">Name</div>
+                                    <div class="list-cell type">Type</div>
+                                    <div class="list-cell size">Size</div>
+                                    <div class="list-cell modified">Modified</div>
+                                    <div class="list-cell actions">Actions</div>
+                                </div>
+                                <div class="list-body" id="list-body">
+                                    <!-- List view files will be here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="file-info-panel">
+                            <div class="info-header">
+                                <h3><i class="fas fa-info-circle"></i> Selected Items</h3>
+                                <span class="selected-count">0 items selected</span>
+                            </div>
+                            <div class="info-content" id="file-info">
+                                <p>Select files or folders to view details and available actions.</p>
+                            </div>
+                            <div class="info-actions">
+                                <button class="btn-action" id="download-selected">
+                                    <i class="fas fa-download"></i> Download
+                                </button>
+                                <button class="btn-action" id="delete-selected">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                                <button class="btn-action" id="share-selected">
+                                    <i class="fas fa-share"></i> Share
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <!-- Server Control Section -->
+                    <section id="server-section" class="content-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-cogs"></i> Server Control Panel</h2>
+                            <p class="section-description">Control and manage server services and settings</p>
+                        </div>
+                        
+                        <div class="server-controls">
+                            <div class="control-panel">
+                                <h3><i class="fas fa-play-circle"></i> Service Control</h3>
+                                
+                                <div class="service-card" data-service="apache">
+                                    <div class="service-info">
+                                        <div class="service-icon">
+                                            <i class="fab fa-apache"></i>
+                                        </div>
+                                        <div class="service-details">
+                                            <h4>Apache Web Server</h4>
+                                            <p>Version 2.4.56 • Port 80/443</p>
+                                            <div class="service-status running">
+                                                <span class="status-dot"></span>
+                                                <span>Running</span>
+                                                <span class="uptime">Uptime: 14d 6h</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="service-controls">
+                                        <button class="btn-control stop" data-action="stop">
+                                            <i class="fas fa-stop"></i> Stop
+                                        </button>
+                                        <button class="btn-control restart" data-action="restart">
+                                            <i class="fas fa-redo"></i> Restart
+                                        </button>
+                                        <button class="btn-control logs" data-action="logs">
+                                            <i class="fas fa-file-alt"></i> Logs
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="service-card" data-service="php">
+                                    <div class="service-info">
+                                        <div class="service-icon">
+                                            <i class="fab fa-php"></i>
+                                        </div>
+                                        <div class="service-details">
+                                            <h4>PHP-FPM</h4>
+                                            <p>Version 8.2.4 • Max Memory: 256MB</p>
+                                            <div class="service-status running">
+                                                <span class="status-dot"></span>
+                                                <span>Running</span>
+                                                <span class="uptime">Active Processes: 12</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="service-controls">
+                                        <button class="btn-control stop" data-action="stop">
+                                            <i class="fas fa-stop"></i> Stop
+                                        </button>
+                                        <button class="btn-control restart" data-action="restart">
+                                            <i class="fas fa-redo"></i> Restart
+                                        </button>
+                                        <button class="btn-control logs" data-action="logs">
+                                            <i class="fas fa-file-alt"></i> Logs
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="service-card" data-service="python">
+                                    <div class="service-info">
+                                        <div class="service-icon">
+                                            <i class="fab fa-python"></i>
+                                        </div>
+                                        <div class="service-details">
+                                            <h4>Python WSGI</h4>
+                                            <p>Version 3.10.11 • Port 8000</p>
+                                            <div class="service-status running">
+                                                <span class="status-dot"></span>
+                                                <span>Running</span>
+                                                <span class="uptime">Requests: 1,245/min</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="service-controls">
+                                        <button class="btn-control stop" data-action="stop">
+                                            <i class="fas fa-stop"></i> Stop
+                                        </button>
+                                        <button class="btn-control restart" data-action="restart">
+                                            <i class="fas fa-redo"></i> Restart
+                                        </button>
+                                        <button class="btn-control logs" data-action="logs">
+                                            <i class="fas fa-file-alt"></i> Logs
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="service-card" data-service="mysql">
+                                    <div class="service-info">
+                                        <div class="service-icon">
+                                            <i class="fas fa-database"></i>
+                                        </div>
+                                        <div class="service-details">
+                                            <h4>MySQL Database</h4>
+                                            <p>Version 8.0.33 • Connections: 45</p>
+                                            <div class="service-status running">
+                                                <span class="status-dot"></span>
+                                                <span>Running</span>
+                                                <span class="uptime">Queries: 12,450/min</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="service-controls">
+                                        <button class="btn-control stop" data-action="stop">
+                                            <i class="fas fa-stop"></i> Stop
+                                        </button>
+                                        <button class="btn-control restart" data-action="restart">
+                                            <i class="fas fa-redo"></i> Restart
+                                        </button>
+                                        <button class="btn-control logs" data-action="logs">
+                                            <i class="fas fa-file-alt"></i> Logs
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="control-panel">
+                                <h3><i class="fas fa-sliders-h"></i> Server Settings</h3>
+                                
+                                <div class="settings-group">
+                                    <div class="setting-row">
+                                        <label for="server-name">Server Name</label>
+                                        <input type="text" id="server-name" value="Hostinger-x-Team-PROD-01" class="settings-input">
+                                    </div>
+                                    
+                                    <div class="setting-row">
+                                        <label for="max-upload">Max Upload Size</label>
+                                        <div class="range-container">
+                                            <input type="range" id="max-upload" min="10" max="300" value="300" step="10" class="settings-slider">
+                                            <span id="max-upload-value">300 MB</span>
+                                        </div>
+                                        <div class="range-ticks">
+                                            <span>10MB</span>
+                                            <span>100MB</span>
+                                            <span>200MB</span>
+                                            <span>300MB</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="setting-row">
+                                        <label for="php-version">PHP Version</label>
+                                        <select id="php-version" class="settings-select">
+                                            <option value="8.2">PHP 8.2 (Recommended)</option>
+                                            <option value="8.1">PHP 8.1</option>
+                                            <option value="8.0">PHP 8.0</option>
+                                            <option value="7.4">PHP 7.4</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="setting-row">
+                                        <label for="auto-backup">Auto Backup</label>
+                                        <label class="switch">
+                                            <input type="checkbox" id="auto-backup" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                        <span class="setting-description">Daily automatic backups</span>
+                                    </div>
+                                    
+                                    <div class="setting-row">
+                                        <label for="maintenance-mode">Maintenance Mode</label>
+                                        <label class="switch">
+                                            <input type="checkbox" id="maintenance-mode">
+                                            <span class="slider"></span>
+                                        </label>
+                                        <span class="setting-description">Enable maintenance page</span>
+                                    </div>
+                                    
+                                    <button class="btn-primary btn-save" id="save-settings">
+                                        <i class="fas fa-save"></i> Save Settings
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <!-- System Monitoring Section -->
+                    <section id="monitoring-section" class="content-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-chart-bar"></i> System Monitoring</h2>
+                            <p class="section-description">Real-time server performance and activity monitoring</p>
+                            <div class="time-range">
+                                <button class="time-btn active" data-range="1h">1H</button>
+                                <button class="time-btn" data-range="24h">24H</button>
+                                <button class="time-btn" data-range="7d">7D</button>
+                                <button class="time-btn" data-range="30d">30D</button>
+                            </div>
+                        </div>
+                        
+                        <div class="monitoring-grid">
+                            <div class="metric-card primary">
+                                <div class="metric-header">
+                                    <h3><i class="fas fa-file-alt"></i> Files Online</h3>
+                                    <div class="metric-trend up">
+                                        <i class="fas fa-arrow-up"></i> 12%
+                                    </div>
+                                </div>
+                                <div class="metric-value" id="online-files">147</div>
+                                <p class="metric-desc">Active files on server</p>
+                                <div class="metric-chart">
+                                    <div class="chart-sparkline" id="files-chart"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="metric-card warning">
+                                <div class="metric-header">
+                                    <h3><i class="fas fa-file-archive"></i> Files Offline</h3>
+                                    <div class="metric-trend down">
+                                        <i class="fas fa-arrow-down"></i> 5%
+                                    </div>
+                                </div>
+                                <div class="metric-value" id="offline-files">23</div>
+                                <p class="metric-desc">Inactive/archived files</p>
+                            </div>
+                            
+                            <div class="metric-card success">
+                                <div class="metric-header">
+                                    <h3><i class="fas fa-users"></i> Users ONLINE</h3>
+                                    <div class="metric-trend up">
+                                        <i class="fas fa-arrow-up"></i> 8%
+                                    </div>
+                                </div>
+                                <div class="metric-value" id="online-users">8</div>
+                                <p class="metric-desc">Active users right now</p>
+                            </div>
+                            
+                            <div class="metric-card info">
+                                <div class="metric-header">
+                                    <h3><i class="fas fa-bolt"></i> Response Time</h3>
+                                    <div class="metric-trend down">
+                                        <i class="fas fa-arrow-down"></i> 15%
+                                    </div>
+                                </div>
+                                <div class="metric-value" id="response-time">28<span class="metric-unit">ms</span></div>
+                                <p class="metric-desc">Average server response</p>
+                            </div>
+                        </div>
+                        
+                        <div class="charts-container">
+                            <div class="chart-card">
+                                <div class="chart-header">
+                                    <h3><i class="fas fa-microchip"></i> CPU Usage</h3>
+                                    <div class="chart-legend">
+                                        <span class="legend-item">
+                                            <span class="legend-color system"></span> System
+                                        </span>
+                                        <span class="legend-item">
+                                            <span class="legend-color user"></span> User
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="chart-container" id="cpu-chart-container">
+                                    <canvas id="cpu-chart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="chart-card">
+                                <div class="chart-header">
+                                    <h3><i class="fas fa-memory"></i> Memory Usage</h3>
+                                    <span class="chart-value">3.2/8 GB (40%)</span>
+                                </div>
+                                <div class="chart-container">
+                                    <div class="gauge-chart" id="ram-gauge">
+                                        <div class="gauge-fill" style="transform: rotate(144deg);"></div>
+                                        <div class="gauge-center">
+                                            <span class="gauge-value">40%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="chart-card">
+                                <div class="chart-header">
+                                    <h3><i class="fas fa-hdd"></i> Storage Usage</h3>
+                                    <span class="chart-value">225/500 GB (45%)</span>
+                                </div>
+                                <div class="chart-container">
+                                    <div class="storage-chart">
+                                        <div class="storage-fill" style="width: 45%;"></div>
+                                    </div>
+                                    <div class="storage-labels">
+                                        <span>Used: 225 GB</span>
+                                        <span>Free: 275 GB</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="system-log-container">
+                            <div class="log-header">
+                                <h3><i class="fas fa-clipboard-list"></i> System Log</h3>
+                                <div class="log-controls">
+                                    <button class="btn-log-control" id="pause-logs">
+                                        <i class="fas fa-pause"></i> Pause
+                                    </button>
+                                    <button class="btn-log-control" id="clear-logs">
+                                        <i class="fas fa-trash"></i> Clear
+                                    </button>
+                                    <button class="btn-log-control" id="export-logs">
+                                        <i class="fas fa-download"></i> Export
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="log-content" id="system-log">
+                                <div class="log-entry info">
+                                    <span class="log-time">[14:32:15]</span>
+                                    <span class="log-message">User 'admin' uploaded file 'app.py' (2.4 MB)</span>
+                                </div>
+                                <div class="log-entry success">
+                                    <span class="log-time">[14:30:42]</span>
+                                    <span class="log-message">PHP service restarted successfully</span>
+                                </div>
+                                <div class="log-entry warning">
+                                    <span class="log-time">[14:28:19]</span>
+                                    <span class="log-message">CPU usage threshold exceeded (85%)</span>
+                                </div>
+                                <div class="log-entry">
+                                    <span class="log-time">[14:25:33]</span>
+                                    <span class="log-message">New user connected from IP 192.168.1.105</span>
+                                </div>
+                                <div class="log-entry">
+                                    <span class="log-time">[14:22:47]</span>
+                                    <span class="log-message">Daily backup completed successfully</span>
+                                </div>
+                                <div class="log-entry info">
+                                    <span class="log-time">[14:20:15]</span>
+                                    <span class="log-message">File 'index.php' modified by user 'admin'</span>
+                                </div>
+                                <div class="log-entry">
+                                    <span class="log-time">[14:18:02]</span>
+                                    <span class="log-message">Server health check passed</span>
+                                </div>
+                                <div class="log-entry">
+                                    <span class="log-time">[14:15:30]</span>
+                                    <span class="log-message">Python script 'bot.py' executed successfully</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="dashboard-footer">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <p>Hostinger x Team © 2023 • Advanced Hosting Platform</p>
+                    <div class="footer-links">
+                        <a href="#">Privacy Policy</a>
+                        <a href="#">Terms of Service</a>
+                        <a href="#">Support</a>
+                        <a href="#">Documentation</a>
+                    </div>
+                </div>
+                <div class="footer-right">
+                    <div class="server-stats">
+                        <span><i class="fas fa-clock"></i> Uptime: 99.97%</span>
+                        <span><i class="fas fa-database"></i> Storage: 225/500 GB</span>
+                        <span><i class="fas fa-user"></i> Users: 8 online</span>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Notification Toast -->
+    <div id="notification-toast" class="toast">
+        <div class="toast-content">
+            <i class="fas fa-check-circle"></i>
+            <div class="toast-message">Operation completed successfully!</div>
+        </div>
+        <button class="toast-close">&times;</button>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
